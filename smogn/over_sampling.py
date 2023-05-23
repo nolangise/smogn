@@ -163,41 +163,57 @@ def over_sampling(
     for i in tqdm(range(n), ascii = True, desc = "dist_matrix"):
         for j in range(n):
             
-            ## utilize euclidean distance given that 
-            ## data is all numeric / continuous
-            if feat_count_nom == 0:
-                dist_matrix[i][j] = euclidean_dist(
-                    a = data_num.iloc[i],
-                    b = data_num.iloc[j],
-                    d = feat_count_num
-                )
+            ## distances between an observation and itself
+            if i == j:
+                dist_matrix[i][j] = 0
+                
+            ## omit calculations for below the diagonal 
+            ## as distance is a symmetric operation
+            if i > j:
+                dist_matric[i][j] = 0
+                
+            ## calculate distances below diagonal
+            else:
             
-            ## utilize heom distance given that 
-            ## data contains both numeric / continuous 
-            ## and nominal / categorical
-            if feat_count_nom > 0 and feat_count_num > 0:
-                dist_matrix[i][j] = heom_dist(
-                    
-                    ## numeric inputs
-                    a_num = data_num.iloc[i],
-                    b_num = data_num.iloc[j],
-                    d_num = feat_count_num,
-                    ranges_num = feat_ranges_num,
-                    
-                    ## nominal inputs
-                    a_nom = data_nom.iloc[i],
-                    b_nom = data_nom.iloc[j],
-                    d_nom = feat_count_nom
-                )
+                ## utilize euclidean distance given that 
+                ## data is all numeric / continuous
+                if feat_count_nom == 0:
+                    dist_matrix[i][j] = euclidean_dist(
+                        a = data_num.iloc[i],
+                        b = data_num.iloc[j],
+                        d = feat_count_num
+                    )
             
-            ## utilize hamming distance given that 
-            ## data is all nominal / categorical
-            if feat_count_num == 0:
-                dist_matrix[i][j] = overlap_dist(
-                    a = data_nom.iloc[i],
-                    b = data_nom.iloc[j],
-                    d = feat_count_nom
-                )
+                ## utilize heom distance given that 
+                ## data contains both numeric / continuous 
+                ## and nominal / categorical
+                if feat_count_nom > 0 and feat_count_num > 0:
+                    dist_matrix[i][j] = heom_dist(
+                    
+                        ## numeric inputs
+                        a_num = data_num.iloc[i],
+                        b_num = data_num.iloc[j],
+                        d_num = feat_count_num,
+                        ranges_num = feat_ranges_num,
+                    
+                        ## nominal inputs
+                        a_nom = data_nom.iloc[i],
+                        b_nom = data_nom.iloc[j],
+                        d_nom = feat_count_nom
+                    )
+            
+                ## utilize hamming distance given that 
+                ## data is all nominal / categorical
+                if feat_count_num == 0:
+                    dist_matrix[i][j] = overlap_dist(
+                        a = data_nom.iloc[i],
+                        b = data_nom.iloc[j],
+                        d = feat_count_nom
+                    )
+    
+    ## add the transpose to fill in below diagonal
+    dist_matrix = dist_matrix + dist_matrix.T
+    
     
     ## determine indicies of k nearest neighbors
     ## and convert knn index list to matrix
